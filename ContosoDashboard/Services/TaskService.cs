@@ -75,10 +75,11 @@ public class TaskService : ITaskService
         if (task == null) return null;
 
         // Authorization: User can only view tasks they are assigned to, created, or are part of the project
+        var project = task.Project;
         var isAssignedUser = task.AssignedUserId == requestingUserId;
         var isCreator = task.CreatedByUserId == requestingUserId;
-        var isProjectMember = task.Project?.ProjectMembers.Any(pm => pm.UserId == requestingUserId) ?? false;
-        var isProjectManager = task.Project?.ProjectManagerId == requestingUserId;
+        var isProjectMember = project?.ProjectMembers.Any(pm => pm.UserId == requestingUserId) ?? false;
+        var isProjectManager = project?.ProjectManagerId == requestingUserId;
 
         if (!isAssignedUser && !isCreator && !isProjectMember && !isProjectManager)
         {
@@ -119,10 +120,11 @@ public class TaskService : ITaskService
         if (task == null) return false;
 
         // Authorization: Only assigned user, creator, project manager, or project members can update status
+        var project = task.Project;
         var isAssignedUser = task.AssignedUserId == requestingUserId;
         var isCreator = task.CreatedByUserId == requestingUserId;
-        var isProjectMember = task.Project?.ProjectMembers.Any(pm => pm.UserId == requestingUserId) ?? false;
-        var isProjectManager = task.Project?.ProjectManagerId == requestingUserId;
+        var isProjectMember = project?.ProjectMembers.Any(pm => pm.UserId == requestingUserId) ?? false;
+        var isProjectManager = project?.ProjectManagerId == requestingUserId;
 
         if (!isAssignedUser && !isCreator && !isProjectMember && !isProjectManager)
         {
@@ -193,10 +195,11 @@ public class TaskService : ITaskService
         if (task == null) return new List<TaskComment>();
 
         // Authorization: User can only view comments if they have access to the task
+        var project = task.Project;
         var isAssignedUser = task.AssignedUserId == requestingUserId;
         var isCreator = task.CreatedByUserId == requestingUserId;
-        var isProjectMember = task.Project?.ProjectMembers.Any(pm => pm.UserId == requestingUserId) ?? false;
-        var isProjectManager = task.Project?.ProjectManagerId == requestingUserId;
+        var isProjectMember = project?.ProjectMembers.Any(pm => pm.UserId == requestingUserId) ?? false;
+        var isProjectManager = project?.ProjectManagerId == requestingUserId;
 
         if (!isAssignedUser && !isCreator && !isProjectMember && !isProjectManager)
         {
