@@ -21,13 +21,19 @@ Add a secure document management capability to the Blazor Server dashboard using
 
 ## Constitution Check
 
-The design respects the existing project constraints:
+The design passes the constitution gate:
 
-- It does not require a major rewrite of the Blazor app or database structure.
-- It keeps metadata in the EF Core data model and stores files outside wwwroot for security.
-- It introduces an abstraction for file storage to support future Azure migration without changing business logic.
-- It aligns with the current mock-authentication and policy-based authorization model.
-- It adds focused UI and service layers rather than a second application architecture.
+- **Training-first scope**: The feature remains local and offline-capable and does not add a cloud
+	dependency or a second application architecture.
+- **Layered architecture**: Metadata remains in EF Core, file operations are isolated behind
+	`IFileStorageService`, and the local implementation is registered through dependency injection.
+- **Secure by default**: Files stay outside `wwwroot`, names are generated, authorization is enforced
+	in services as well as UI, and upload failure cleanup is part of the implementation plan.
+- **Incremental delivery**: The three prioritized user stories have independent checks, with the P1
+	upload workflow delivering the first usable slice.
+- **Validation and traceability**: No dedicated test project exists yet, so build checks and targeted
+	service/UI verification are explicitly required; security and performance checks are listed in the
+	task plan.
 
 ## Project Structure
 
