@@ -11,11 +11,11 @@
 
 **Purpose**: Prepare configuration and the existing single-project Blazor Server application for document work.
 
-- [ ] T001 Review `ContosoDashboard/ContosoDashboard.csproj` and confirm the implementation targets `net9.0` with Entity Framework Core SQL Server 9.0.0.
-- [ ] T002 [P] Add `DocumentStorage:RootPath` and scanner configuration placeholders to `ContosoDashboard/appsettings.json`.
-- [ ] T003 [P] Add local training storage and scanner settings to `ContosoDashboard/appsettings.Development.json` without placing uploads under `ContosoDashboard/wwwroot`.
-- [ ] T004 [P] Document the configured storage root, fail-closed scanner prerequisite, and reset procedure in `specs/002-document-upload/quickstart.md`.
-- [ ] T005 Run `dotnet build .\\ContosoDashboard\\ContosoDashboard.csproj --no-restore` and record the baseline result before feature implementation in `specs/002-document-upload/quickstart.md`.
+- [X] T001 Review `ContosoDashboard/ContosoDashboard.csproj` and confirm the implementation targets `net9.0` with Entity Framework Core SQL Server 9.0.0.
+- [X] T002 [P] Add `DocumentStorage:RootPath` and scanner configuration placeholders to `ContosoDashboard/appsettings.json`.
+- [X] T003 [P] Add local training storage and scanner settings to `ContosoDashboard/appsettings.Development.json` without placing uploads under `ContosoDashboard/wwwroot`.
+- [X] T004 [P] Document the configured storage root, fail-closed scanner prerequisite, and reset procedure in `specs/002-document-upload/quickstart.md`.
+- [X] T005 Run `dotnet build .\\ContosoDashboard\\ContosoDashboard.csproj --no-restore` and record the baseline result before feature implementation in `specs/002-document-upload/quickstart.md`.
 
 ---
 
@@ -25,21 +25,21 @@
 
 **Checkpoint**: No story work starts until the foundation builds and the document metadata, storage, scanner, and authorization contracts are registered.
 
-- [ ] T006 [P] Create `ContosoDashboard/Models/Document.cs` with integer `DocumentId`, required metadata, approved text category, generated `StorageKey`, optional `ProjectId` and `TaskId`, ownership, lifecycle fields, and navigation properties.
-- [ ] T007 [P] Create `ContosoDashboard/Models/DocumentShare.cs` with integer key, document/user/project-team targets, grantor, created/revoked timestamps, and mutually exclusive recipient invariants.
-- [ ] T008 [P] Create `ContosoDashboard/Models/DocumentAuditEvent.cs` with integer key, actor, document, action, outcome, sanitized details, and timestamp fields.
-- [ ] T009 Update `ContosoDashboard/Data/ApplicationDbContext.cs` with document DbSets, foreign-key relationships, delete behaviors, indexes for visibility/search/retention, and model constraints from `specs/002-document-upload/data-model.md`.
-- [ ] T010 [P] Create `ContosoDashboard/Services/IFileStorageService.cs` with generated-key write, read, replace, and delete operations that never accept an unsafe absolute path.
-- [ ] T011 [P] Create `ContosoDashboard/Services/LocalFileStorageService.cs` to resolve the configured root outside `wwwroot`, normalize relative keys, create directories, stream files, and prevent path traversal.
-- [ ] T012 [P] Create `ContosoDashboard/Services/IMalwareScanner.cs` with a safe/unsafe/error result contract that supports fail-closed upload behavior.
-- [ ] T013 [P] Create `ContosoDashboard/Services/ConfiguredMalwareScanner.cs` to require a configured scanner and return failure when unavailable, errored, or unsafe, without adding a cloud SDK dependency.
-- [ ] T014 Create `ContosoDashboard/Services/DocumentAuthorizationService.cs` with reusable visibility and management checks for owners, administrators, project managers, project members, active shares, and assigned team leads.
-- [ ] T015 Create `ContosoDashboard/Services/IDocumentService.cs` with list/search/filter, per-file upload, content authorization, metadata update, replacement, deletion, sharing, notification, and audit operations matching `specs/002-document-upload/contracts/document-management.yaml`.
-- [ ] T016 Register `IFileStorageService`, `IMalwareScanner`, `DocumentAuthorizationService`, and `IDocumentService` in `ContosoDashboard/Program.cs` and preserve the existing authentication and role policies.
-- [ ] T017 Add `Documents` and `DocumentShares` navigation collections to `ContosoDashboard/Models/User.cs` and `ContosoDashboard/Models/Project.cs`, and add document navigation to `ContosoDashboard/Models/TaskItem.cs` where required by the model.
-- [ ] T018 Extend `ContosoDashboard/Models/Notification.cs` with document-share and project-document notification types, preserving existing notification persistence and read authorization.
-- [ ] T019 Implement the document audit retention query/purge operation in `ContosoDashboard/Services/DocumentService.cs` so events older than 12 months are eligible for maintenance without affecting current audit reporting.
-- [ ] T020 Run `dotnet build .\ContosoDashboard\ContosoDashboard.csproj --no-restore` and verify the foundation compiles before beginning user-story implementation.
+- [X] T006 [P] Create `ContosoDashboard/Models/Document.cs` with integer `DocumentId`, required metadata, approved text category, generated `StorageKey`, optional `ProjectId` and `TaskId`, ownership, lifecycle fields, and navigation properties.
+- [X] T007 [P] Create `ContosoDashboard/Models/DocumentShare.cs` with integer key, document/user/project-team targets, grantor, created/revoked timestamps, and mutually exclusive recipient invariants.
+- [X] T008 [P] Create `ContosoDashboard/Models/DocumentAuditEvent.cs` with integer key, actor, document, action, outcome, sanitized details, and timestamp fields.
+- [X] T009 Update `ContosoDashboard/Data/ApplicationDbContext.cs` with document DbSets, foreign-key relationships, delete behaviors, indexes for visibility/search/retention, and model constraints from `specs/002-document-upload/data-model.md`.
+- [X] T010 [P] Create `ContosoDashboard/Services/IFileStorageService.cs` with generated-key write, read, replace, and delete operations that never accept an unsafe absolute path.
+- [X] T011 [P] Create `ContosoDashboard/Services/LocalFileStorageService.cs` to resolve the configured root outside `wwwroot`, normalize relative keys, create directories, stream files, and prevent path traversal.
+- [X] T012 [P] Create `ContosoDashboard/Services/IMalwareScanner.cs` with a safe/unsafe/error result contract that supports fail-closed upload behavior.
+- [X] T013 [P] Create `ContosoDashboard/Services/ConfiguredMalwareScanner.cs` to require a configured scanner and return failure when unavailable, errored, or unsafe, without adding a cloud SDK dependency.
+- [X] T014 Create `ContosoDashboard/Services/DocumentAuthorizationService.cs` with reusable visibility and management checks for owners, administrators, project managers, project members, active shares, and assigned team leads.
+- [X] T015 Create `ContosoDashboard/Services/IDocumentService.cs` with list/search/filter, per-file upload, content authorization, metadata update, replacement, deletion, sharing, notification, and audit operations matching `specs/002-document-upload/contracts/document-management.yaml`.
+- [X] T016 Register `IFileStorageService`, `IMalwareScanner`, `DocumentAuthorizationService`, and `IDocumentService` in `ContosoDashboard/Program.cs` and preserve the existing authentication and role policies.
+- [X] T017 Add `Documents` and `DocumentShares` navigation collections to `ContosoDashboard/Models/User.cs` and `ContosoDashboard/Models/Project.cs`, and add document navigation to `ContosoDashboard/Models/TaskItem.cs` where required by the model.
+- [X] T018 Extend `ContosoDashboard/Models/Notification.cs` with document-share and project-document notification types, preserving existing notification persistence and read authorization.
+- [X] T019 Implement the document audit retention query/purge operation in `ContosoDashboard/Services/DocumentService.cs` so events older than 12 months are eligible for maintenance without affecting current audit reporting.
+- [X] T020 Run `dotnet build .\ContosoDashboard\ContosoDashboard.csproj --no-restore` and verify the foundation compiles before beginning user-story implementation.
 
 ---
 
@@ -51,17 +51,17 @@
 
 ### Implementation for User Story 1
 
-- [ ] T021 [US1] Implement supported extension, content-type, 25 MB size, title, category, tag, project, and task validation in `ContosoDashboard/Services/DocumentService.cs`.
-- [ ] T022 [US1] Implement fail-closed scan orchestration in `ContosoDashboard/Services/DocumentService.cs` using `IMalwareScanner` before any file is persisted.
-- [ ] T023 [US1] Implement generated storage-key creation and per-file upload ordering in `ContosoDashboard/Services/DocumentService.cs`, including cleanup when metadata persistence fails.
-- [ ] T024 [US1] Implement per-file upload result reporting in `ContosoDashboard/Services/DocumentService.cs` so valid files remain successful when sibling files fail.
-- [ ] T025 [US1] Add successful and failed upload audit events in `ContosoDashboard/Services/DocumentService.cs`, including scanner, validation, storage, and persistence outcomes.
-- [ ] T026 [US1] Add the authorized document content route in `ContosoDashboard/Program.cs` that resolves access through `DocumentAuthorizationService` before streaming download or inline preview content.
-- [ ] T027 [US1] Create `ContosoDashboard/Pages/Documents.razor` with authenticated upload controls, required metadata, multi-file selection, progress/results, validation messages, and the current user's document list.
-- [ ] T028 [US1] Add `@key` input reset, copied `IBrowserFile` metadata, bounded stream reads, and cleared browser-file references in `ContosoDashboard/Pages/Documents.razor`.
-- [ ] T029 [US1] Add document navigation to `ContosoDashboard/Shared/NavMenu.razor` and protect the route with the existing `[Authorize]` pattern.
-- [ ] T030 [US1] Run the P1 smoke test from `specs/002-document-upload/quickstart.md`, including valid upload, oversize/unsupported/scanner rejection, mixed batch independence, storage-root inspection, and unauthorized content access.
-- [ ] T031 [US1] Run `dotnet build .\ContosoDashboard\ContosoDashboard.csproj --no-restore` and resolve any P1 implementation errors before the MVP checkpoint.
+- [X] T021 [US1] Implement supported extension, content-type, 25 MB size, title, category, tag, project, and task validation in `ContosoDashboard/Services/DocumentService.cs`.
+- [X] T022 [US1] Implement fail-closed scan orchestration in `ContosoDashboard/Services/DocumentService.cs` using `IMalwareScanner` before any file is persisted.
+- [X] T023 [US1] Implement generated storage-key creation and per-file upload ordering in `ContosoDashboard/Services/DocumentService.cs`, including cleanup when metadata persistence fails.
+- [X] T024 [US1] Implement per-file upload result reporting in `ContosoDashboard/Services/DocumentService.cs` so valid files remain successful when sibling files fail.
+- [X] T025 [US1] Add successful and failed upload audit events in `ContosoDashboard/Services/DocumentService.cs`, including scanner, validation, storage, and persistence outcomes.
+- [X] T026 [US1] Add the authorized document content route in `ContosoDashboard/Program.cs` that resolves access through `DocumentAuthorizationService` before streaming download or inline preview content.
+- [X] T027 [US1] Create `ContosoDashboard/Pages/Documents.razor` with authenticated upload controls, required metadata, multi-file selection, progress/results, validation messages, and the current user's document list.
+- [X] T028 [US1] Add `@key` input reset, copied `IBrowserFile` metadata, bounded stream reads, and cleared browser-file references in `ContosoDashboard/Pages/Documents.razor`.
+- [X] T029 [US1] Add document navigation to `ContosoDashboard/Shared/NavMenu.razor` and protect the route with the existing `[Authorize]` pattern.
+- [X] T030 [US1] Run the P1 smoke test from `specs/002-document-upload/quickstart.md`, including valid upload, oversize/unsupported/scanner rejection, mixed batch independence, storage-root inspection, and unauthorized content access.
+- [X] T031 [US1] Run `dotnet build .\ContosoDashboard\ContosoDashboard.csproj --no-restore` and resolve any P1 implementation errors before the MVP checkpoint.
 
 **Checkpoint**: User Story 1 is independently usable when a permitted user can upload and list valid files, rejected files produce no accessible artifacts, and direct unauthorized content access is denied.
 

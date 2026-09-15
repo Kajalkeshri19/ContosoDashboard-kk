@@ -1,0 +1,226 @@
+@page "/documents"
+@attribute [Authorize]
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Forms
+@inject IDocumentService DocumentService
+@inject IProjectService ProjectService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Documents - ContosoDashboard</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Documents</h1>
+            <p class="text-muted">Upload and find documents you are permitted to access.</p>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <div class="alert alert-danger" role="alert">@errorMessage</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(successMessage))
+    {
+        <div class="alert alert-success" role="alert">@successMessage</div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h2 class="h4">Upload documents</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="document-title">Title</label>
+                    <input id="document-title" class="form-control" @bind="title" maxlength="255" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="document-category">Category</label>
+                    <select id="document-category" class="form-select" @bind="category">
+                        @foreach (var option in categories)
+                        {
+                            <option value="@option">@option</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="document-project">Project (optional)</label>
+                    <select id="document-project" class="form-select" @bind="selectedProjectId">
+                        <option value="">Personal files</option>
+                        @foreach (var project in projects)
+                        {
+                            <option value="@project.ProjectId">@project.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="document-tags">Tags (optional)</label>
+                    <input id="document-tags" class="form-control" @bind="tags" maxlength="1000" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="document-description">Description (optional)</label>
+                    <textarea id="document-description" class="form-control" @bind="description" maxlength="2000"></textarea>
+                </div>
+                <div class="col-12">
+                    <InputFile id="document-file" @key="inputKey" OnChange="HandleFilesSelected" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png" />
+                    <div class="form-text">PDF, Office, text, JPEG, and PNG files up to 25 MB each. Files are scanned before storage.</div>
+                </div>
+                <div class="col-12">
+                    <button class="btn btn-primary" @onclick="UploadFiles" disabled="@(isUploading || selectedFiles.Count == 0)">
+                        @(isUploading ? "Uploading..." : "Upload selected files")
+                    </button>
+                    @if (isUploading)
+                    {
+                        <span class="ms-3 text-muted">@uploadProgress</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h4 mb-0">My permitted documents</h2>
+        <input class="form-control w-auto" placeholder="Search documents" @bind="search" @bind:event="oninput" @onchange="LoadDocuments" />
+    </div>
+
+    @if (documents == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else if (documents.Count == 0)
+    {
+        <div class="alert alert-info">No permitted documents found.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Project</th>
+                        <th>Uploaded</th>
+                        <th>Size</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var document in documents)
+                    {
+                        <tr>
+                            <td>@document.Title<br /><small class="text-muted">@document.OriginalFileName</small></td>
+                            <td>@document.Category</td>
+                            <td>@(document.ProjectName ?? "Personal")</td>
+                            <td>@document.UploadedDate.ToLocalTime().ToString("MMM dd, yyyy")</td>
+                            <td>@FormatSize(document.FileSizeBytes)</td>
+                            <td><a class="btn btn-sm btn-outline-primary" href="/documents/@document.DocumentId/content">Download</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private static readonly string[] categories = ["Project Documents", "Team Resources", "Personal Files", "Reports", "Presentations", "Other"];
+    private readonly List<IBrowserFile> selectedFiles = [];
+    private List<DocumentSummary>? documents;
+    private List<Project> projects = [];
+    private string title = string.Empty;
+    private string category = "Other";
+    private string? description;
+    private string? tags;
+    private string search = string.Empty;
+    private int? selectedProjectId;
+    private int currentUserId;
+    private int inputKey;
+    private bool isUploading;
+    private string uploadProgress = string.Empty;
+    private string? errorMessage;
+    private string? successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (int.TryParse(authState.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+            currentUserId = userId;
+
+        if (currentUserId > 0)
+        {
+            projects = await ProjectService.GetUserProjectsAsync(currentUserId);
+            await LoadDocuments();
+        }
+    }
+
+    private void HandleFilesSelected(InputFileChangeEventArgs args)
+    {
+        selectedFiles.Clear();
+        selectedFiles.AddRange(args.GetMultipleFiles(20));
+        errorMessage = null;
+        successMessage = null;
+    }
+
+    private async Task UploadFiles()
+    {
+        if (currentUserId <= 0 || selectedFiles.Count == 0)
+            return;
+
+        isUploading = true;
+        errorMessage = null;
+        successMessage = null;
+        var requests = new List<DocumentUploadRequest>();
+        try
+        {
+            foreach (var selectedFile in selectedFiles)
+            {
+                var fileName = selectedFile.Name;
+                var fileSize = selectedFile.Size;
+                var contentType = selectedFile.ContentType;
+                await using var browserStream = selectedFile.OpenReadStream(25 * 1024 * 1024);
+                var memoryStream = new MemoryStream();
+                await browserStream.CopyToAsync(memoryStream);
+                memoryStream.Position = 0;
+                requests.Add(new DocumentUploadRequest
+                {
+                    Content = memoryStream,
+                    OriginalFileName = fileName,
+                    ContentType = contentType,
+                    FileSizeBytes = fileSize,
+                    Title = string.IsNullOrWhiteSpace(title) ? Path.GetFileNameWithoutExtension(fileName) : title,
+                    Category = category,
+                    Description = description,
+                    Tags = tags,
+                    ProjectId = selectedProjectId
+                });
+            }
+
+            uploadProgress = $"Processing {requests.Count} file(s)...";
+            var results = await DocumentService.UploadFilesAsync(currentUserId, requests);
+            var succeeded = results.Count(result => result.Succeeded);
+            var failures = results.Where(result => !result.Succeeded).Select(result => $"{result.OriginalFileName}: {result.Error}").ToList();
+            successMessage = $"{succeeded} file(s) uploaded successfully.";
+            if (failures.Count > 0)
+                errorMessage = string.Join(" ", failures);
+            selectedFiles.Clear();
+            inputKey++;
+            await LoadDocuments();
+        }
+        finally
+        {
+            foreach (var request in requests)
+                await request.Content.DisposeAsync();
+            isUploading = false;
+            uploadProgress = string.Empty;
+        }
+    }
+
+    private async Task LoadDocuments(ChangeEventArgs? _ = null)
+    {
+        if (currentUserId > 0)
+            documents = await DocumentService.GetDocumentsAsync(currentUserId, new DocumentQuery(Search: search));
+    }
+
+    private static string FormatSize(long bytes)
+        => bytes >= 1024 * 1024 ? $"{bytes / 1024d / 1024d:0.##} MB" : $"{Math.Max(1, bytes / 1024):N0} KB";
+}

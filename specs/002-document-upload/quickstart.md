@@ -15,6 +15,8 @@ From the repository root:
 dotnet build .\ContosoDashboard\ContosoDashboard.csproj
 ```
 
+Baseline recorded on 2026-09-15: build succeeded before MVP implementation with three existing nullable warnings in `ContosoDashboard/Services/TaskService.cs` and no errors.
+
 ## Configure local storage
 
 Set a storage root outside `ContosoDashboard/wwwroot`, for example:
@@ -28,6 +30,8 @@ Set a storage root outside `ContosoDashboard/wwwroot`, for example:
 ```
 
 The implementation must resolve relative roots beneath the application content root, create the directory on startup or first use, and persist only relative generated storage keys.
+
+The development configuration enables the local training scanner adapter. The default configuration disables scanning, so non-development environments reject uploads until a scanner is explicitly configured.
 
 ## Run
 
