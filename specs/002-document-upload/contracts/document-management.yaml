@@ -1,0 +1,119 @@
+openapi: 3.0.3
+info:
+  title: ContosoDashboard Document Management Contract
+  version: 1.0.0
+  description: >-
+    Logical contract for the existing Blazor Server document workflows. The
+    implementation may invoke these operations through scoped services and an
+    authorized content route; no separate API application is introduced.
+paths:
+  /documents:
+    get:
+      summary: List permitted documents
+      parameters:
+        - {name: search, in: query, schema: {type: string, maxLength: 255}}
+        - {name: category, in: query, schema: {type: string, maxLength: 100}}
+        - {name: projectId, in: query, schema: {type: integer, format: int32}}
+        - {name: fromDate, in: query, schema: {type: string, format: date-time}}
+        - {name: toDate, in: query, schema: {type: string, format: date-time}}
+        - {name: sort, in: query, schema: {type: string, enum: [title, uploadedDate, category, fileSize]}}
+      responses:
+        '200':
+          description: Only documents visible to the authenticated user
+          content:
+            application/json:
+              schema: {type: array, items: {$ref: '#/components/schemas/DocumentSummary'}}
+        '401': {description: Authentication required}
+  /documents/upload:
+    post:
+      summary: Upload one file result within a multi-file operation
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, title, category]
+              properties:
+                file: {type: string, format: binary}
+                title: {type: string, maxLength: 255}
+                description: {type: string, maxLength: 2000}
+                category: {type: string, maxLength: 100}
+                tags: {type: string, maxLength: 1000}
+                projectId: {type: integer, format: int32}
+                taskId: {type: integer, format: int32}
+      responses:
+        '201': {description: File scanned, stored, persisted, and audited}
+        '400': {description: Validation, malware, or persistence failure for this file}
+        '401': {description: Authentication required}
+        '403': {description: Project or task access denied}
+  /documents/{documentId}/content:
+    get:
+      summary: Download or preview one permitted document
+      parameters:
+        - {name: documentId, in: path, required: true, schema: {type: integer, format: int32}}
+        - {name: disposition, in: query, schema: {type: string, enum: [inline, attachment], default: attachment}}
+      responses:
+        '200': {description: Authorized file stream}
+        '401': {description: Authentication required}
+        '403': {description: Document access denied}
+        '404': {description: Document not found or not visible}
+  /documents/{documentId}:
+    patch:
+      summary: Edit metadata or replace a file
+      parameters:
+        - {name: documentId, in: path, required: true, schema: {type: integer, format: int32}}
+      responses:
+        '200': {description: Document identity retained}
+        '400': {description: Validation or malware failure}
+        '403': {description: Management access denied}
+        '404': {description: Document not found or not visible}
+    delete:
+      summary: Delete a document after confirmation
+      parameters:
+        - {name: documentId, in: path, required: true, schema: {type: integer, format: int32}}
+      responses:
+        '204': {description: Document and backing file removed}
+        '403': {description: Management access denied}
+        '404': {description: Document not found or not visible}
+  /documents/{documentId}/shares:
+    post:
+      summary: Share with one project team or specific user
+      parameters:
+        - {name: documentId, in: path, required: true, schema: {type: integer, format: int32}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - {$ref: '#/components/schemas/UserShareRequest'}
+                - {$ref: '#/components/schemas/ProjectTeamShareRequest'}
+      responses:
+        '201': {description: Share created and notifications emitted}
+        '403': {description: Sharing access denied}
+        '409': {description: Duplicate active share}
+components:
+  schemas:
+    DocumentSummary:
+      type: object
+      required: [documentId, title, category, fileSizeBytes, contentType, uploadedDate]
+      properties:
+        documentId: {type: integer, format: int32}
+        title: {type: string}
+        category: {type: string}
+        fileSizeBytes: {type: integer, format: int64}
+        contentType: {type: string}
+        uploadedDate: {type: string, format: date-time}
+        projectId: {type: integer, format: int32, nullable: true}
+        projectName: {type: string, nullable: true}
+    UserShareRequest:
+      type: object
+      required: [recipientUserId]
+      properties:
+        recipientUserId: {type: integer, format: int32}
+    ProjectTeamShareRequest:
+      type: object
+      required: [projectId]
+      properties:
+        projectId: {type: integer, format: int32}
